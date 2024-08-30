@@ -1,0 +1,24 @@
+
+{
+  "name": "exampledb-connector123",
+  "config": {
+      "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+      "tasks.max": "1",
+      "database.hostname": "postgres",
+      "database.port": "5432",
+      "database.user": "docker",
+      "database.password": "docker",
+      "database.dbname": "exampledb",
+      "database.server.name": "postgres",
+      "output.plugin.name": "pgoutput",
+      "database.history.kafka.bootstrap.servers": "kafka:9092",
+      "database.history.kafka.topic": "schema-changes.postgres",
+      "slot.name": "debezium_slot",
+      "publication.name": "debezium_publication",
+      "topic.prefix": "postgres"
+    }
+}
+
+
+
+

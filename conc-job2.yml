@@ -1,0 +1,157 @@
+
+# resources:
+#   - name: repo
+#     type: git
+#     source:
+#       uri:  https://github.com/jitesh-sidhani/repo
+#       branch: main
+
+
+# jobs:
+#   - name: fetch-and-use-credentials
+#     plan:
+#       - get: repo
+#       - task: fetch-credentials
+#         config:
+#           platform: linux
+#           image_resource:
+#             type: docker-image
+#             source:
+#               repository: hashicorp/vault
+#           run:
+#             path: sh
+#             args:
+#               - -c
+#               - |
+#                 export VAULT_ADDR='http://172.27.80.1:8200'
+#                 export VAULT_TOKEN='hvs.XglMwo7S1WiqgFwIfnUNBLWJ'
+#                 USERNAME=$(vault kv get -field=username secret/temp)
+#                 PASSWORD=$(vault kv get -field=password secret/temp)
+#                 STOCK=$(vault kv get -field=stock secret/temp)
+#                 export VAULT_USERNAME=$USERNAME
+#                 export VAULT_PASSWORD=$PASSWORD
+#                 export VAULT_STOCK=$STOCK
+#                 echo "Fetched Username: $USERNAME"
+#                 echo "Fetched Password: $PASSWORD"
+#                 echo "Fetched Stock: $STOCK"
+#       - task: run-script
+#         config:
+#           platform: linux
+#           image_resource:
+#             type: docker-image
+#             source:
+#               repository: python
+#               tag: 3.9-slim
+#           inputs:
+#             - name: repo
+#           env:
+#             VAULT_USERNAME: ((VAULT_USERNAME))
+#             VAULT_PASSWORD: ((VAULT_PASSWORD))
+#             VAULT_STOCK: ((VAULT_STOCK))
+#           run:
+#             path: sh
+#             args:
+#               - -c
+#               - |
+#                 pip install pandas 
+#                 pip install requests
+#                 pip install selenium
+#                 export VAULT_USERNAME=$USERNAME
+#                 export VAULT_PASSWORD=$PASSWORD
+#                 export VAULT_STOCK=$STOCK
+#                 python repo/script2.py
+                
+
+
+              
+          
+resources:
+  - name: repo
+    type: git
+    source: 
+      uri: https://github.com/jitesh-sidhani/repo
+      branch: main
+
+
+jobs:
+  - name: fetch-and-use-credentials
+    plan:
+      - get: repo
+      - task: show-secret
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source: 
+              repository: hashicorp/vault
+          outputs:
+            - name: credentials # Store output in a folder
+          run:
+            path: sh
+            args:
+              - -c
+              - |
+                # Shell script to fetch credentials from Vault
+                export VAULT_ADDR='http://172.27.80.1:8200'
+                export VAULT_TOKEN='hvs.jLUDkmyMdX5B3lbQRK40YO16'
+
+                # Fetch credentials from Vault
+                USERNAME=$(vault kv get -field=username secret/temp)
+                PASSWORD=$(vault kv get -field=password secret/temp)
+                STOCK_CODE=$(vault kv get -field=stock_code secret/temp)
+
+
+                # Store credentials in a file
+                echo $USERNAME > credentials/username.txt
+                echo $PASSWORD > credentials/password.txt
+                echo $STOCK_CODE > credentials/stock_code.txt
+
+      - task: selenium-python-script
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source: 
+              repository: python
+              tag: "3.9"
+          inputs:
+            - name: repo
+            - name: credentials
+          run:
+            path: sh
+            args:
+              - -c
+              - |
+                # Read credentials from files
+                export STOCK_CODE=$(cat credentials/stock_code.txt)
+                export USERNAME=$(cat credentials/username.txt)
+                export PASSWORD=$(cat credentials/password.txt)
+
+                echo "USERNAME: $USERNAME"
+                echo "PASSWORD: $PASSWORD"
+                echo "STOCK_CODE: $STOCK_CODE"
+                # Install dependencies
+                # cd
+                apt-get update && apt-get install -y wget unzip curl libxi6 libgconf-2-4 libnss3 libgbm-dev xdg-utils
+
+                # Install Google Chrome
+                wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+                dpkg -i google-chrome-stable_current_amd64.deb || apt-get install -f -y
+
+                # Install ChromeDriver
+                wget https://storage.googleapis.com/chrome-for-testing-public/128.0.6613.84/linux64/chromedriver-linux64.zip
+                unzip chromedriver-linux64.zip
+                mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
+
+                chmod +x /usr/local/bin/chromedriver
+
+                # Install Python packages
+                pip install selenium 
+                pip install pandas
+                pip install hvac
+                pip install openpyxl 
+                pip install sqlalchemy
+                pip install psycopg2
+
+                python3 repo/selenium_script.py
+ 

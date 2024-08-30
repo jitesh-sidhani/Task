@@ -1,0 +1,28 @@
+{
+    "name": "debezium-postgres-sink2",
+    "config": {
+        "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+        "tasks.max": "1",
+        "topics": "postgres.public.my_second_topic",
+        "connection.url": "jdbc:postgresql://host.docker.internal:5432/exampledb",
+        "connection.user": "docker",
+        "connection.password": "docker",
+        "table.name.format": "my_new_table1",
+        "insert.mode": "upsert",
+        "pk.mode": "record_value",
+        "pk.fields": "year_month",
+        "auto.create": "true",
+        "auto.evolve": "true",
+        "transforms": "unwrap,flatten",
+        "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+        "transforms.unwrap.drop.tombstones": "false",
+        "transforms.unwrap.delete.handling.mode": "rewrite",
+        "transforms.flatten.type": "org.apache.kafka.connect.transforms.Flatten$Value",
+        "transforms.flatten.delimiter": "_",
+        "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+        "key.converter.schemas.enable": true,
+        "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+        "value.converter.schemas.enable": true
+        }
+    }
+

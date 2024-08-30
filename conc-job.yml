@@ -1,0 +1,81 @@
+resources:
+  - name: repo
+    type: git
+    source: 
+      uri: https://github.com/jitesh-sidhani/repo
+      branch: main
+
+
+jobs:
+  - name: fetch-and-use-credentials
+    plan:
+      - get: repo
+      - task: show-secret
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source: 
+              repository: hashicorp/vault
+          outputs:
+            - name: credentials # Store output in a folder
+          run:
+            path: sh
+            args:
+              - -c
+              - |
+                # Shell script to fetch credentials from Vault
+                export VAULT_ADDR='http://172.27.80.1:8200'
+                export VAULT_TOKEN='hvs.XglMwo7S1WiqgFwIfnUNBLWJ'
+
+                # Fetch credentials from Vault
+                USERNAME=$(vault kv get -field=username secret/temp)
+                PASSWORD=$(vault kv get -field=password secret/temp)
+                STOCK_CODE=$(vault kv get -field=stock_code secret/temp)
+
+
+                # Store credentials in a file
+                echo $USERNAME > credentials/username.txt
+                echo $PASSWORD > credentials/password.txt
+                echo $STOCK_CODE > credentials/stock_code.txt
+
+
+      - task: run-python-script
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source: 
+              repository: python
+              tag: "3.9"
+          inputs:
+            - name: credentials # Input the credentials from the previous job
+            - name: repo
+          run:
+            path: sh
+            args:
+              - -c
+              - |
+                # Install required libraries
+
+                # Read credentials from files
+                export STOCK_CODE=$(cat credentials/stock_code.txt)
+                export USERNAME=$(cat credentials/username.txt)
+                export PASSWORD=$(cat credentials/password.txt)
+
+                echo "USERNAME: $USERNAME"
+                echo "PASSWORD: $PASSWORD"
+                echo "STOCK_CODE: $STOCK_CODE"
+
+                python3 repo/BeautifulSoup.py
+ 
+
+
+
+
+
+
+
+
+
+

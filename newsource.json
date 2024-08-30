@@ -1,0 +1,16 @@
+{ 
+    "name": "exampledb-connector4", 
+    "config": { 
+      "connector.class": "io.debezium.connector.postgresql.PostgresConnector", 
+      "plugin.name": "pgoutput", 
+      "database.hostname": "postgres", 
+      "database.port": "5432", 
+      "database.user": "docker", 
+      "database.password": "docker", 
+      "database.dbname": "exampledb", 
+      "database.server.name": "postgres", 
+      "table.include.list": "public.companies_data3",
+      "topic.prefix": "postgtres"
+    } 
+
+  } 
